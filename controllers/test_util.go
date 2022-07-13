@@ -17,6 +17,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"strconv"
@@ -40,7 +41,11 @@ func GetEnvOrDefault(key, fallback string) string {
 
 func GetEnvOrDefaultInt(key string, fallback int) (int, error) {
 	if value, ok := os.LookupEnv(key); ok {
-		return strconv.Atoi(value)
+		result, err := strconv.Atoi(value)
+		if err != nil {
+			return fallback, fmt.Errorf("fail to parse value %w", err)
+		}
+		return result, nil
 	}
 	return fallback, nil
 }
