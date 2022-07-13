@@ -28,10 +28,10 @@ import (
 	"time"
 
 	"github.com/redhat-appstudio/service-provider-integration-operator/api/v1beta1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
 	"github.com/redhat-appstudio/service-provider-integration-operator/pkg/spi-shared/oauthstate"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -70,7 +70,7 @@ var _ = Describe("Controller", func() {
 			gg.Expect(err).NotTo(HaveOccurred())
 			gg.Expect(secrets.Items).NotTo(BeEmpty())
 			for _, s := range secrets.Items {
-				if s.Annotations["kubernetes.io/service-account.name"] == "default" && len(s.Data["token"]) > 0 {
+				if s.Annotations[corev1.ServiceAccountNameKey] == "default" && len(s.Data["token"]) > 0 {
 					result = string(s.Data["token"])
 					return true
 				}

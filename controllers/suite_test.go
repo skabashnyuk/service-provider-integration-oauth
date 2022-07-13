@@ -15,10 +15,11 @@ package controllers
 
 import (
 	"context"
-	"k8s.io/apimachinery/pkg/util/wait"
 	"net/http"
 	"testing"
 	"time"
+
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/alexedwards/scs/v2/memstore"
@@ -134,33 +135,48 @@ var _ = BeforeSuite(func() {
 	}
 	Expect(IT.Client.Create(context.TODO(), ns)).To(Succeed())
 	IT.Namespace = ns.Name
-	sa, err := IT.Clientset.CoreV1().ServiceAccounts(IT.Namespace).Get(context.TODO(), "default", metav1.GetOptions{})
-	Expect(err).NotTo(HaveOccurred())
-	if sa.Secrets == nil {
-		secret := &corev1.Secret{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      "sa-token",
-				Namespace: IT.Namespace,
-				Annotations: map[string]string{
-					corev1.ServiceAccountNameKey: sa.GetName(),
-					corev1.ServiceAccountUIDKey:  string(sa.UID),
-				},
-			},
-			Type: corev1.SecretTypeServiceAccountToken,
-			Data: map[string][]byte{},
-		}
-		secret, err := IT.Clientset.CoreV1().Secrets(IT.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
-		Expect(err).NotTo(HaveOccurred())
-		err = wait.Poll(time.Second, 10*time.Second, func() (bool, error) {
-			if len(secret.Data[corev1.ServiceAccountTokenKey]) != 0 {
-				return false, nil
+	defaultTimeout, err := GetEnvOrDefaultInt("GOMEGA_DEFAULT_EVENTUALLY_TIMEOUT", 10)
+	err = wait.Poll(time.Second, time.Duration(defaultTimeout)*time.Second, func() (bool, error) {
+		sa, err := IT.Clientset.CoreV1().ServiceAccounts(IT.Namespace).Get(context.TODO(), "default", metav1.GetOptions{})
+		if sa != nil && err == nil {
+			secretName := "sa-token"
+			if sa.Secrets == nil {
+				secret := &corev1.Secret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      secretName,
+						Namespace: IT.Namespace,
+						Annotations: map[string]string{
+							corev1.ServiceAccountNameKey: sa.GetName(),
+							corev1.ServiceAccountUIDKey:  string(sa.UID),
+						},
+					},
+					Type: corev1.SecretTypeServiceAccountToken,
+					Data: map[string][]byte{},
+				}
+				secret, err := IT.Clientset.CoreV1().Secrets(IT.Namespace).Create(context.TODO(), secret, metav1.CreateOptions{})
+				Expect(err).NotTo(HaveOccurred())
+
+			} else {
+				secretName = sa.Secrets[0].Name
 			}
-			secret, err = IT.Clientset.CoreV1().Secrets(IT.Namespace).Get(context.TODO(), "sa-token", metav1.GetOptions{})
+			err = wait.Poll(time.Second, time.Duration(defaultTimeout)*time.Second, func() (bool, error) {
+				secret := &corev1.Secret{}
+				if len(secret.Data[corev1.ServiceAccountTokenKey]) != 0 {
+					return false, nil
+				}
+				secret, err = IT.Clientset.CoreV1().Secrets(IT.Namespace).Get(context.TODO(), secretName, metav1.GetOptions{})
+				Expect(err).NotTo(HaveOccurred())
+				return true, nil
+			})
 			Expect(err).NotTo(HaveOccurred())
+
 			return true, nil
-		})
-		Expect(err).NotTo(HaveOccurred())
-	}
+		}
+		return false, nil
+	})
+
+	Expect(err).NotTo(HaveOccurred())
+
 	//[SELF_CONTAINED_TEST_ATTEMPT]
 	//// create the default state - we need to manually create the default service account in the default namespace
 	//// this is done by the kube-controller-manger but we don't have one in our test environment...

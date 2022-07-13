@@ -16,7 +16,11 @@
 
 package controllers
 
-import "net/http"
+import (
+	"net/http"
+	"os"
+	"strconv"
+)
 
 // fakeRoundTrip casts a function into a http.RoundTripper
 type fakeRoundTrip func(r *http.Request) (*http.Response, error)
@@ -25,4 +29,18 @@ var _ http.RoundTripper = fakeRoundTrip(nil)
 
 func (f fakeRoundTrip) RoundTrip(r *http.Request) (*http.Response, error) {
 	return f(r)
+}
+
+func GetEnvOrDefault(key, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
+}
+
+func GetEnvOrDefaultInt(key string, fallback int) (int, error) {
+	if value, ok := os.LookupEnv(key); ok {
+		return strconv.Atoi(value)
+	}
+	return fallback, nil
 }
