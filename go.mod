@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/vault v1.11.2
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.20.0
+	github.com/onsi/gomega v1.20.1
 	github.com/redhat-appstudio/service-provider-integration-operator v0.7.3-0.20220829123331-89f1d64fb367
 	github.com/stretchr/testify v1.8.0
 	go.uber.org/zap v1.21.0
