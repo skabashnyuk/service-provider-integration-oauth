@@ -10,7 +10,7 @@ require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/hashicorp/vault v1.11.2
-	github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.1
+	github.com/kcp-dev/logicalcluster/v2 v2.0.0-alpha.3
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.2
 	github.com/redhat-appstudio/service-provider-integration-operator v0.8.0
