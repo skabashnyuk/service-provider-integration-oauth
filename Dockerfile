@@ -24,7 +24,7 @@ COPY controllers/ controllers/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o spi-oauth main.go
 
 # Compose the final image
-FROM registry.access.redhat.com/ubi8/ubi-minimal:8.6-941
+FROM registry.access.redhat.com/ubi8/ubi-minimal:8.7-923
 
 # Install the 'shadow-utils' which contains `adduser` and `groupadd` binaries
 RUN microdnf install shadow-utils \
